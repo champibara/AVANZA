@@ -24,11 +24,10 @@ export async function POST(
     return NextResponse.json({ error: "Caso no encontrado" }, { status: 404 });
   }
   
-  const estadoDerivado = entidadDestino === "fiscalia" ? "derivado_fiscalia" : "derivado_cem";
   const entidadLabel = entidadDestino === "fiscalia" ? "Fiscalía Especializada" : "CEM / Asesoría Legal";
   
   await db.update(casos).set({
-    estado: estadoDerivado,
+    estado: "derivado",
     entidadAsignada: entidadDestino,
     fechaActualizacion: new Date(),
   }).where(eq(casos.id, idNum));
@@ -64,5 +63,5 @@ export async function POST(
     <p>Puedes consultar el estado en: <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/consulta">Consulta de caso</a></p>
   `);
   
-  return NextResponse.json({ estado: estadoDerivado });
+  return NextResponse.json({ estado: "derivado", entidadAsignada: entidadDestino });
 }

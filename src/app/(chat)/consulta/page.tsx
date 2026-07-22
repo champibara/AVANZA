@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Shield, Clock, FileText, ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Shield, Clock, FileText, ExternalLink, Play } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LangSwitcher } from "@/components/lang-switcher";
 import { useTranslate } from "@/lib/i18n/context";
@@ -22,10 +23,12 @@ interface ResultadoConsulta {
 
 export default function ConsultaPage() {
   const { t } = useTranslate();
+  const router = useRouter();
   const [pin, setPin] = useState("");
   const [resultado, setResultado] = useState<ResultadoConsulta | null>(null);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [reanudando, setReanudando] = useState(false);
 
   const consultar = async () => {
     if (!pin.trim()) return;
@@ -48,6 +51,23 @@ export default function ConsultaPage() {
     }
   };
 
+  const reanudarCaso = async () => {
+    if (!pin.trim() || !resultado) return;
+    setReanudando(true);
+    try {
+      const res = await fetch(`/api/caso/${pin.trim().toUpperCase()}/reanudar`, { method: "POST" });
+      if (!res.ok) {
+        setError(t("consulta", "error_reanudar"));
+        return;
+      }
+      router.push("/");
+    } catch {
+      setError(t("consulta", "error_reanudar"));
+    } finally {
+      setReanudando(false);
+    }
+  };
+
   const estadoColor: Record<string, string> = {
     en_orientacion: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
     consentimiento_pendiente: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
@@ -55,8 +75,8 @@ export default function ConsultaPage() {
     validado: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
     rechazado: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
     clasificado: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-    derivado_fiscalia: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
-    derivado_cem: "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300",
+    derivado: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+    caso_guardado: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
     seguimiento: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300",
     completado: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
   };
@@ -68,8 +88,8 @@ export default function ConsultaPage() {
     validado: t("estados", "validado"),
     rechazado: t("estados", "rechazado"),
     clasificado: t("estados", "clasificado"),
-    derivado_fiscalia: t("estados", "derivado_fiscalia"),
-    derivado_cem: t("estados", "derivado_cem"),
+    derivado: t("estados", "derivado"),
+    caso_guardado: t("estados", "caso_guardado"),
     seguimiento: t("estados", "seguimiento"),
     completado: t("estados", "completado"),
   };
@@ -169,9 +189,20 @@ export default function ConsultaPage() {
                         </div>
                       </div>
                     ))}
-                  </div>
-                </div>
-              )}
+              </div>
+            </div>
+          )}
+
+          {resultado.caso.estado === "caso_guardado" && (
+            <button
+              onClick={reanudarCaso}
+              disabled={reanudando}
+              className="w-full mt-4 bg-amber-600 text-white py-3 rounded-xl hover:bg-amber-700 transition disabled:opacity-50 font-medium flex items-center justify-center gap-2"
+            >
+              <Play className="w-4 h-4" />
+              {reanudando ? t("consulta", "reanudando") : t("consulta", "reanudar")}
+            </button>
+          )}
             </div>
           )}
         </div>

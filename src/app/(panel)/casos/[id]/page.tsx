@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Shield, Clock, Hash, CheckCircle, XCircle, FileText, Send } from "lucide-react";
+import { ArrowLeft, Shield, Clock, Hash, CheckCircle, XCircle, FileText, Send, ClipboardList } from "lucide-react";
 import { useTranslate } from "@/lib/i18n/context";
 
 interface EvidenciaData {
@@ -77,6 +77,7 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
   const [accionTipo, setAccionTipo] = useState("publica");
   const [entidadDestino, setEntidadDestino] = useState("");
   const [mensajeNotif, setMensajeNotif] = useState("");
+  const [descripcionSeguimiento, setDescripcionSeguimiento] = useState("");
 
   useEffect(() => {
     fetch(`/api/operador/casos/${id}`)
@@ -90,8 +91,7 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
     validado: t("estados", "validado"),
     rechazado: t("estados", "rechazado"),
     clasificado: t("estados", "clasificado"),
-    derivado_fiscalia: t("estados", "derivado_fiscalia"),
-    derivado_cem: t("estados", "derivado_cem"),
+    derivado: t("estados", "derivado"),
   }), [t]);
 
   const ejecutarAccion = async (url: string, body: Record<string, unknown>) => {
@@ -262,11 +262,18 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
             </button>
           )}
 
-          {(caso.estado === "derivado_fiscalia" || caso.estado === "derivado_cem") && (
+          {caso.estado === "derivado" && (
             <div className="space-y-3">
               <button
+                onClick={() => setAccion("seguimiento")}
+                className="w-full bg-amber-600 text-white py-2.5 rounded-xl hover:bg-amber-700 transition font-medium flex items-center justify-center gap-2"
+              >
+                <ClipboardList className="w-4 h-4" />
+                {t("caso", "seguimiento")}
+              </button>
+              <button
                 onClick={() => setAccion("notificar")}
-                className="w-full bg-teal-600 text-white py-2.5 rounded-xl hover:bg-teal-700 transition font-medium"
+                className="w-full bg-teal-600 text-white py-2.5 rounded-xl hover:bg-teal-700 transition font-medium flex items-center justify-center gap-2"
               >
                 {t("caso", "notificar")}
               </button>
@@ -370,6 +377,34 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
                 className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 transition"
               >
                 {t("caso", "derivar")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {accion === "seguimiento" && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 max-w-md w-full">
+            <h2 className="font-bold text-lg mb-4">{t("caso", "seguimiento")}</h2>
+            <textarea
+              placeholder={t("caso", "descripcion_seguimiento")}
+              value={descripcionSeguimiento}
+              onChange={(e) => setDescripcionSeguimiento(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl text-sm mb-4 focus:ring-2 focus:ring-amber-500 outline-none"
+              rows={3}
+            />
+            <div className="flex gap-3">
+              <button onClick={() => setAccion(null)} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition">{t("common", "cancelar")}</button>
+              <button
+                onClick={() => {
+                  ejecutarAccion(`/api/operador/casos/${id}/seguimiento`, { descripcion: descripcionSeguimiento });
+                  setDescripcionSeguimiento("");
+                }}
+                disabled={!descripcionSeguimiento.trim()}
+                className="flex-1 bg-amber-600 text-white py-2.5 rounded-xl hover:bg-amber-700 transition disabled:opacity-50"
+              >
+                {t("caso", "guardar_seguimiento")}
               </button>
             </div>
           </div>

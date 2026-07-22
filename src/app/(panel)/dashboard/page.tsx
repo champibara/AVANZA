@@ -19,8 +19,7 @@ const estadoColor: Record<string, string> = {
     validado: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700",
     rechazado: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700",
     clasificado: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700",
-    derivado_fiscalia: "bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-700",
-    derivado_cem: "bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-900/30 dark:text-teal-300 dark:border-teal-700",
+    derivado: "bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-700",
   };
 
 export default function DashboardPage() {
@@ -51,8 +50,7 @@ export default function DashboardPage() {
     validado: t("estados", "validado"),
     rechazado: t("estados", "rechazado"),
     clasificado: t("estados", "clasificado"),
-    derivado_fiscalia: t("estados", "derivado_fiscalia"),
-    derivado_cem: t("estados", "derivado_cem"),
+    derivado: t("estados", "derivado"),
   }), [t]);
 
   return (
@@ -85,8 +83,7 @@ export default function DashboardPage() {
           <option value="pendiente_validacion">{t("dashboard", "filtro_pendientes")}</option>
           <option value="validado">{t("dashboard", "filtro_validados")}</option>
           <option value="clasificado">{t("dashboard", "filtro_clasificados")}</option>
-          <option value="derivado_fiscalia">{t("dashboard", "filtro_fiscalia")}</option>
-          <option value="derivado_cem">{t("dashboard", "filtro_cem")}</option>
+          <option value="derivado">{t("dashboard", "filtro_derivados")}</option>
           <option value="rechazado">{t("dashboard", "filtro_rechazados")}</option>
         </select>
       </div>
