@@ -1,0 +1,12 @@
+{
+  "name": "Plataforma de Orientación - Violencia Digital MIMP",
+  "short_name": "VD MIMP",
+  "description": "Acompañamiento y denuncia de violencia digital",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4338ca",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "name": "@violence-platform/case-management",
+  "version": "1.0.0",
+  "description": "Case Management service for Violence Digital Platform",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "jest",
+    "type-check": "tsc --noEmit",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@violence-platform/shared": "*",
+    "express": "^4.18.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "compression": "^1.7.4",
+    "express-rate-limit": "^6.0.0",
+    "express-validator": "^7.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "bcrypt": "^5.0.0",
+    "redis": "^4.0.0",
+    "pg": "^8.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.0",
+    "@types/cors": "^2.8.0",
+    "@types/helmet": "^4.0.0",
+    "@types/compression": "^1.7.0",
+    "@types/jsonwebtoken": "^9.0.0",
+    "@types/bcrypt": "^5.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

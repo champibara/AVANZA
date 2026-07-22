@@ -1,0 +1,40 @@
+name: E2E Tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday 6am
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Start app with Neon
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+          JWT_SECRET: ci-secret-for-e2e
+        run: |
+          npx tsx scripts/seed.ts &
+          npm run dev &
+          sleep 15
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-screenshots
+          path: playwright-report/
