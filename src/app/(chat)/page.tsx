@@ -30,7 +30,7 @@ export default function ChatPage() {
     { tipo: "ia", texto: "Hola, gracias por comunicarte. Estoy aquí para escucharte y brindarte información sobre violencia digital. ¿Te gustaría conversar?" },
   ]);
   const [paso, setPaso] = useState<Paso>("inicio");
-  const [casoId, setCasoId] = useState<string | null>(null);
+  const [casoId, setCasoId] = useState<number | null>(null);
   const [pin, setPin] = useState<string | null>(null);
 
   const [nombre, setNombre] = useState("");
@@ -55,6 +55,10 @@ export default function ChatPage() {
     setCargando(true);
     try {
       const res = await fetch("/api/chat/iniciar", { method: "POST" });
+      if (!res.ok) {
+        agregarMensaje("sistema", t("chat", "error_iniciar"));
+        return;
+      }
       const data = await res.json();
       setCasoId(data.casoId);
       setPin(data.pin);
@@ -77,6 +81,10 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ casoId, eventType, mensajeUsuario }),
       });
+      if (!res.ok) {
+        console.warn(`[enviarEvento] API error ${res.status} para evento ${eventType}`);
+        return;
+      }
       const data = await res.json();
       return data;
     } catch {
