@@ -37,9 +37,10 @@ beforeEach(() => {
   process.env.GEMINI_API_KEY = "test-key";
 });
 
-async function llamarIniciar() {
+async function llamarIniciar(body?: Record<string, unknown>) {
   const { POST } = await import("../iniciar/route");
-  return POST();
+  const req = { json: vi.fn().mockResolvedValue(body || {}) } as any;
+  return POST(req);
 }
 
 describe("POST /api/chat/iniciar — invocación a Gemini", () => {
@@ -63,5 +64,21 @@ describe("POST /api/chat/iniciar — invocación a Gemini", () => {
 
     expect(data.mensaje).toBeTruthy();
     expect(typeof data.mensaje).toBe("string");
+  });
+
+  it("debe pasar historial previo a Gemini si se proporciona", async () => {
+    mockGenerarMensajeIA.mockResolvedValue("Bienvenida contextual");
+
+    const historial = [
+      { rol: "usuario" as const, contenido: "Me están acosando en Instagram" },
+      { rol: "asistente" as const, contenido: "Eso suena muy difícil. Cuéntame más." },
+      { rol: "usuario" as const, contenido: "Es una expareja" },
+    ];
+
+    const res = await llamarIniciar({ historial });
+    const data = await res.json();
+
+    expect(mockGenerarMensajeIA).toHaveBeenCalledWith("orientacion", historial);
+    expect(data.mensaje).toBe("Bienvenida contextual");
   });
 });

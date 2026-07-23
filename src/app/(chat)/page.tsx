@@ -54,6 +54,9 @@ export default function ChatPage() {
   const [cargando, setCargando] = useState(false);
   const [textoLibre, setTextoLibre] = useState("");
   const [contextoGuia, setContextoGuia] = useState<string[]>([]);
+  const [historialExploracion, setHistorialExploracion] = useState<
+    { rol: "usuario" | "asistente"; contenido: string }[]
+  >([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -133,7 +136,11 @@ export default function ChatPage() {
   const iniciarRegistroFormal = async () => {
     setCargando(true);
     try {
-      const res = await fetch("/api/chat/iniciar", { method: "POST" });
+      const res = await fetch("/api/chat/iniciar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ historial: historialExploracion }),
+      });
       if (!res.ok) {
         agregarMensaje("sistema", "Error al iniciar el registro. Intenta de nuevo.");
         return;
@@ -270,12 +277,43 @@ export default function ChatPage() {
     setPaso("caso_guardado");
   };
 
-  const manejarEnviarTextoLibre = () => {
+  const manejarEnviarTextoLibre = async () => {
     const texto = textoLibre.trim();
     if (!texto || cargando) return;
     setTextoLibre("");
     agregarMensaje("victima", texto);
 
+    const historialActualizado = [
+      ...historialExploracion,
+      { rol: "usuario" as const, contenido: texto },
+    ];
+    setHistorialExploracion(historialActualizado);
+    setCargando(true);
+
+    try {
+      const res = await fetch("/api/chat/explorar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensaje: texto, historial: historialExploracion }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.respuesta) {
+          agregarMensaje("ia", data.respuesta);
+          setHistorialExploracion(prev => [
+            ...prev,
+            { rol: "asistente", contenido: data.respuesta },
+          ]);
+          setCargando(false);
+          return;
+        }
+      }
+    } catch {
+      // fallback
+    }
+
+    setCargando(false);
     const respuestas: Record<string, string> = {
       welcome: `Gracias por escribirme, ${texto}. Cuéntame, ¿cuál de estas opciones describe mejor tu situación?`,
       difusion_intima: `Entiendo, ${texto}. Es importante que sepas que no tienes la culpa. Por favor elige una opción del menú para que pueda ayudarte con el siguiente paso.`,
