@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
   const nextState = transition(currentState, { type: eventType });
 
   if (!nextState) {
+    console.error(`[chat-machine] Transición no válida: estado_actual=${currentState}, evento=${eventType}, casoId=${casoId}`);
     return NextResponse.json({ error: "Transición no válida" }, { status: 400 });
   }
 
