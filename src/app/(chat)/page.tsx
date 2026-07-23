@@ -8,6 +8,7 @@ import { LangSwitcher } from "@/components/lang-switcher";
 import { useTranslate } from "@/lib/i18n/context";
 import { conversationalTree, platformGuides } from "@/lib/conversational-tree";
 import type { FlowNode } from "@/lib/conversational-tree";
+import { guiasApoyo, guiaPorId } from "@/data/guiasApoyo";
 
 interface Mensaje {
   tipo: "ia" | "victima" | "sistema";
@@ -52,6 +53,7 @@ export default function ChatPage() {
   const [pinCopiado, setPinCopiado] = useState(false);
   const [cargando, setCargando] = useState(false);
   const [textoLibre, setTextoLibre] = useState("");
+  const [contextoGuia, setContextoGuia] = useState<string[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -74,10 +76,30 @@ export default function ChatPage() {
     setMensajes(prev => [...prev, { tipo, texto, hora: HoraActual(), ...opts }]);
   };
 
+  const mapeoContexto: Record<string, string[]> = {
+    difusion_intima: ["stopncii", "takeitdown", "meta", "tiktok_x"],
+    node_stopncii: ["stopncii"],
+    node_takeitdown: ["takeitdown"],
+    node_redes: ["meta", "tiktok_x"],
+    sextorsion: ["sextorsion", "stopncii"],
+    acoso_digital: ["acoso_digital", "meta"],
+    info_derechos: ["marco_legal"],
+    emergencia: ["canales_emergencia"],
+  };
+
   const mostrarNodo = (nodeId: string) => {
     const nodo = conversationalTree[nodeId];
     if (!nodo) return;
     setArbolActual(nodeId);
+
+    const guiasNodo = mapeoContexto[nodeId];
+    if (guiasNodo) {
+      setContextoGuia(prev => {
+        const nuevos = guiasNodo.filter(g => !prev.includes(g));
+        return nuevos.length ? [...prev, ...nuevos] : prev;
+      });
+    }
+
     agregarMensaje("ia", nodo.botMessage);
     if (nodo.platformGuideKey) {
       const guia = platformGuides[nodo.platformGuideKey];
@@ -122,6 +144,7 @@ export default function ChatPage() {
       agregarMensaje("sistema", `Tu PIN único: ${data.pin} — ${t("chat", "pin_guardar")}`);
       agregarMensaje("ia", "Antes de continuar con el registro formal, necesito informarte sobre el tratamiento de tus datos.");
       agregarMensaje("ia", "1. Tus datos personales se almacenarán de forma cifrada y segura.\n2. La evidencia que compartas será protegida con un sello digital (hash).\n3. Recibirás un PIN único para dar seguimiento a tu caso sin exponer tu identidad.\n4. Puedes solicitar la eliminación de tus datos en cualquier momento.\n\n¿Aceptas el tratamiento de tus datos y evidencia según estos términos?");
+      mostrarGuiasDeContexto();
       setPaso("consentimiento");
     } catch {
       agregarMensaje("sistema", "Error de conexión. Intenta de nuevo.");
@@ -255,6 +278,23 @@ export default function ChatPage() {
     setTimeout(() => agregarMensaje("ia", respuesta), 600);
   };
 
+  const salidaRapida = () => {
+    window.location.href = "https://clima.gg";
+  };
+
+  const mostrarGuiasDeContexto = () => {
+    const idsVistos = new Set<string>();
+    contextoGuia.forEach(id => {
+      const g = guiaPorId(id);
+      if (g && !idsVistos.has(id)) {
+        idsVistos.add(id);
+        agregarMensaje("sistema",
+          `📖 **${g.titulo}**\n\n${g.descripcion}\n\n**Pasos:**\n${g.pasos.map((p, i) => `${i + 1}. ${p}`).join("\n")}${g.urlOficial ? `\n\n🔗 ${g.urlOficial}` : ""}`
+        );
+      }
+    });
+  };
+
   const copiarPin = () => {
     if (pin) { navigator.clipboard.writeText(pin); setPinCopiado(true); setTimeout(() => setPinCopiado(false), 2000); }
   };
@@ -276,6 +316,15 @@ export default function ChatPage() {
             <p className="text-[10px] text-[#D9D9D9] leading-tight">en línea</p>
           </div>
           <div className="flex items-center gap-1">
+            <button
+              onClick={salidaRapida}
+              title="Salida rápida — cierra esta página inmediatamente"
+              className="w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition shrink-0"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
             <LangSwitcher />
             <ThemeToggle />
           </div>
