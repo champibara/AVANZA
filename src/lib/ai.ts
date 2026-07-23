@@ -79,10 +79,12 @@ async function geminiChat(
   const apiKey = getApiKey();
   if (!apiKey) throw new Error("No API key configured");
 
-  const contents = history.map((m) => ({
-    role: m.rol === "asistente" ? "model" : "user",
-    parts: [{ text: m.contenido }],
-  }));
+  const contents = history.length > 0
+    ? history.map((m) => ({
+        role: m.rol === "asistente" ? "model" : "user",
+        parts: [{ text: m.contenido }],
+      }))
+    : [{ role: "user", parts: [{ text: "Hola, quiero recibir orientación sobre violencia digital." }] }];
 
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
