@@ -176,7 +176,7 @@ export default function ChatPage() {
     agregarMensaje("victima", `[Archivo: ${file.name}]`);
 
     const formData = new FormData();
-    formData.append("casoId", casoId);
+    formData.append("casoId", String(casoId));
     formData.append("file", file);
     formData.append("descripcion", descripcionEvidencia);
 
