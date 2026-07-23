@@ -51,6 +51,7 @@ export default function ChatPage() {
   const [urlEvidencia, setUrlEvidencia] = useState("");
   const [pinCopiado, setPinCopiado] = useState(false);
   const [cargando, setCargando] = useState(false);
+  const [textoLibre, setTextoLibre] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -238,6 +239,22 @@ export default function ChatPage() {
     setPaso("caso_guardado");
   };
 
+  const manejarEnviarTextoLibre = () => {
+    const texto = textoLibre.trim();
+    if (!texto || cargando) return;
+    setTextoLibre("");
+    agregarMensaje("victima", texto);
+
+    const respuestas: Record<string, string> = {
+      welcome: "Gracias por escribirme, ${texto}. Cuéntame, ¿cuál de estas opciones describe mejor tu situación?",
+      difusion_intima: "Entiendo, ${texto}. Es importante que sepas que no tienes la culpa. Por favor elige una opción del menú para que pueda ayudarte con el siguiente paso.",
+      sextorsion: "Lamento que estés pasando por esto, ${texto}. No cedas al chantaje. Selecciona una opción del menú para que te guíe.",
+      acoso_digital: "Gracias por contarme, ${texto}. El acoso digital no está bien. Revisa las opciones del menú para saber cómo proceder.",
+    };
+    const respuesta = respuestas[arbolActual] || "Gracias por compartir. Por favor selecciona una de las opciones del menú para que pueda orientarte mejor.";
+    setTimeout(() => agregarMensaje("ia", respuesta), 600);
+  };
+
   const copiarPin = () => {
     if (pin) { navigator.clipboard.writeText(pin); setPinCopiado(true); setTimeout(() => setPinCopiado(false), 2000); }
   };
@@ -329,20 +346,42 @@ export default function ChatPage() {
       <div className="bg-gray-50 dark:bg-[#0b141a] border-t border-gray-200 dark:border-gray-800 p-3 max-w-3xl mx-auto w-full">
         {paso === "arbol" && nodoActual && (
           <div className="space-y-2">
-            {nodoActual.buttons.map(btn => (
-              <button
-                key={btn.id}
-                onClick={() => navegarArbol(nodoActual, btn.id)}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {nodoActual.buttons.map(btn => (
+                <button
+                  key={btn.id}
+                  onClick={() => navegarArbol(nodoActual, btn.id)}
+                  disabled={cargando}
+                  className={`w-full py-3 rounded-full transition font-medium text-sm disabled:opacity-50 ${
+                    btn.isPrimary
+                      ? "bg-[#075E54] text-white hover:bg-[#054d44]"
+                      : "bg-white dark:bg-[#1f2c33] text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#2a3942]"
+                  }`}
+                >
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 pt-1 border-t border-gray-200 dark:border-gray-700 mt-2">
+              <input
+                type="text"
+                value={textoLibre}
+                onChange={(e) => setTextoLibre(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") manejarEnviarTextoLibre(); }}
+                placeholder="Escribe un mensaje..."
                 disabled={cargando}
-                className={`w-full py-3 rounded-full transition font-medium text-sm disabled:opacity-50 ${
-                  btn.isPrimary
-                    ? "bg-[#075E54] text-white hover:bg-[#054d44]"
-                    : "bg-white dark:bg-[#1f2c33] text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#2a3942]"
-                }`}
+                className="flex-1 p-3 bg-white dark:bg-[#1f2c33] border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-full text-sm focus:ring-2 focus:ring-[#075E54] outline-none placeholder-gray-400 disabled:opacity-50"
+              />
+              <button
+                onClick={manejarEnviarTextoLibre}
+                disabled={!textoLibre.trim() || cargando}
+                className="w-11 h-11 bg-[#075E54] text-white rounded-full flex items-center justify-center hover:bg-[#054d44] transition disabled:opacity-50 shrink-0"
               >
-                {btn.label}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
               </button>
-            ))}
+            </div>
           </div>
         )}
 
