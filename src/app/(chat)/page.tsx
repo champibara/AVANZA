@@ -95,6 +95,7 @@ export default function ChatPage() {
   };
 
   const manejarContinuar = async () => {
+    setCargando(true);
     agregarMensaje("victima", "Sí, deseo continuar");
     const data = await enviarEvento("CONTINUAR", "Sí, deseo continuar con el proceso");
     if (!data) return;
@@ -104,6 +105,7 @@ export default function ChatPage() {
   };
 
   const manejarNoContinuar = async () => {
+    setCargando(true);
     agregarMensaje("victima", "No, gracias");
     const data = await enviarEvento("NO_CONTINUAR", "No, gracias");
     if (data?.mensajes) {
@@ -113,6 +115,7 @@ export default function ChatPage() {
   };
 
   const manejarAceptarConsentimiento = async () => {
+    setCargando(true);
     agregarMensaje("victima", "Acepto los términos");
     const data = await enviarEvento("ACEPTAR_CONSENTIMIENTO", "Acepto los términos de tratamiento de datos");
     if (!data) return;
@@ -122,6 +125,7 @@ export default function ChatPage() {
   };
 
   const manejarRechazarConsentimiento = async () => {
+    setCargando(true);
     agregarMensaje("victima", "No acepto los términos");
     const data = await enviarEvento("RECHAZAR_CONSENTIMIENTO", "No acepto los términos");
     if (data?.mensajes) {
@@ -131,6 +135,7 @@ export default function ChatPage() {
   };
 
   const manejarRegistro = async () => {
+    setCargando(true);
     const datosRegistro = JSON.stringify({
       nombre: nombre || "(anónimo)",
       email,
@@ -154,6 +159,7 @@ export default function ChatPage() {
 
   const manejarSubirEvidencia = async () => {
     if (!urlEvidencia) return;
+    setCargando(true);
     agregarMensaje("victima", `URL: ${urlEvidencia}`);
 
     await fetch("/api/evidencia/url", {
@@ -188,6 +194,7 @@ export default function ChatPage() {
   };
 
   const manejarDenunciarAhora = async () => {
+    setCargando(true);
     agregarMensaje("victima", "Quiero denunciar ahora");
     const data = await enviarEvento("DENUNCIAR_AHORA", "Quiero presentar la denuncia ahora");
     if (data?.mensajes) {
@@ -197,6 +204,7 @@ export default function ChatPage() {
   };
 
   const manejarDenunciarDespues = async () => {
+    setCargando(true);
     agregarMensaje("victima", "Prefiero hacerlo después");
     const data = await enviarEvento("DENUNCIAR_DESPUES", "Prefiero guardar el caso para después");
     if (data?.mensajes) {
