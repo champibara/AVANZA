@@ -142,8 +142,16 @@ export default function ChatPage() {
       setCasoId(data.casoId);
       setPin(data.pin);
       agregarMensaje("sistema", `Tu PIN único: ${data.pin} — ${t("chat", "pin_guardar")}`);
-      agregarMensaje("ia", "Antes de continuar con el registro formal, necesito informarte sobre el tratamiento de tus datos.");
-      agregarMensaje("ia", "1. Tus datos personales se almacenarán de forma cifrada y segura.\n2. La evidencia que compartas será protegida con un sello digital (hash).\n3. Recibirás un PIN único para dar seguimiento a tu caso sin exponer tu identidad.\n4. Puedes solicitar la eliminación de tus datos en cualquier momento.\n\n¿Aceptas el tratamiento de tus datos y evidencia según estos términos?");
+
+      const msgRes = await fetch("/api/chat/mensaje", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ casoId: data.casoId, eventType: "CONTINUAR" }),
+      });
+      if (msgRes.ok) {
+        const msgData = await msgRes.json();
+        if (msgData.mensajes) msgData.mensajes.forEach((m: string) => agregarMensaje("ia", m));
+      }
       mostrarGuiasDeContexto();
       setPaso("consentimiento");
     } catch {
@@ -269,10 +277,10 @@ export default function ChatPage() {
     agregarMensaje("victima", texto);
 
     const respuestas: Record<string, string> = {
-      welcome: "Gracias por escribirme, ${texto}. Cuéntame, ¿cuál de estas opciones describe mejor tu situación?",
-      difusion_intima: "Entiendo, ${texto}. Es importante que sepas que no tienes la culpa. Por favor elige una opción del menú para que pueda ayudarte con el siguiente paso.",
-      sextorsion: "Lamento que estés pasando por esto, ${texto}. No cedas al chantaje. Selecciona una opción del menú para que te guíe.",
-      acoso_digital: "Gracias por contarme, ${texto}. El acoso digital no está bien. Revisa las opciones del menú para saber cómo proceder.",
+      welcome: `Gracias por escribirme, ${texto}. Cuéntame, ¿cuál de estas opciones describe mejor tu situación?`,
+      difusion_intima: `Entiendo, ${texto}. Es importante que sepas que no tienes la culpa. Por favor elige una opción del menú para que pueda ayudarte con el siguiente paso.`,
+      sextorsion: `Lamento que estés pasando por esto, ${texto}. No cedas al chantaje. Selecciona una opción del menú para que te guíe.`,
+      acoso_digital: `Gracias por contarme, ${texto}. El acoso digital no está bien. Revisa las opciones del menú para saber cómo proceder.`,
     };
     const respuesta = respuestas[arbolActual] || "Gracias por compartir. Por favor selecciona una de las opciones del menú para que pueda orientarte mejor.";
     setTimeout(() => agregarMensaje("ia", respuesta), 600);
