@@ -39,7 +39,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Estado de caso inválido" }, { status: 500 });
   }
   const currentState = caso.estado as ChatState;
+  console.log(`[TRACE] mensaje route: casoId=${casoId}, estado_actual=${currentState}, evento=${eventType}`);
   const nextState = transition(currentState, { type: eventType });
+  console.log(`[TRACE] mensaje route: nextState=${nextState}`);
 
   if (!nextState) {
     console.error(`[chat-machine] Transición no válida: estado_actual=${currentState}, evento=${eventType}, casoId=${casoId}`);

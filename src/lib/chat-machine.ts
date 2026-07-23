@@ -118,6 +118,16 @@ export const mensajesIA: Record<string, string[]> = {
     "4. Puedes solicitar la eliminación de tus datos en cualquier momento.",
     "¿Aceptas el tratamiento de tus datos y evidencia según estos términos?",
   ],
+  pendiente_validacion: [
+    "Tu caso ha sido registrado y enviado para revisión.",
+    "Un operador especializado lo evaluará pronto. Recibirás una notificación cuando haya una actualización.",
+    "Puedes dar seguimiento usando tu PIN en la opción 'Consultar mi caso'.",
+  ],
+  caso_guardado: [
+    "Tu caso ha sido guardado. Puedes reanudarlo cuando quieras usando tu PIN.",
+    "No pierdas tu PIN, es la única forma de acceder a tu caso.",
+    "Cuando estés lista, ingresa el PIN en 'Consultar mi caso' y elige 'Reanudar mi caso'.",
+  ],
   cierre: [
     "Gracias por comunicarte. Respetamos tu decisión.",
     "Aquí tienes información útil sobre violencia digital:",
