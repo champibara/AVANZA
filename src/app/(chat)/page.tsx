@@ -29,7 +29,7 @@ export default function ChatPage() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([
     { tipo: "ia", texto: "Hola, gracias por comunicarte. Estoy aquí para escucharte y brindarte información sobre violencia digital. ¿Te gustaría conversar?" },
   ]);
-  const [paso, setPaso] = useState<Paso>("decide_continuar");
+  const [paso, setPaso] = useState<Paso>("inicio");
   const [casoId, setCasoId] = useState<string | null>(null);
   const [pin, setPin] = useState<string | null>(null);
 
@@ -60,6 +60,7 @@ export default function ChatPage() {
       setPin(data.pin);
       agregarMensaje("ia", data.mensaje || "Bienvenido. Estoy aquí para ayudarte.");
       agregarMensaje("ia", "¿Te gustaría continuar con el proceso de orientación?");
+      setPaso("decide_continuar");
     } catch {
       agregarMensaje("sistema", t("chat", "error_iniciar"));
     } finally {
@@ -68,7 +69,7 @@ export default function ChatPage() {
   };
 
   const enviarEvento = async (eventType: string, mensajeUsuario?: string) => {
-    if (!casoId) return;
+    if (!casoId) { console.warn(`[enviarEvento] casoId es null, ignorando evento: ${eventType}`); return; }
     setCargando(true);
     try {
       const res = await fetch("/api/chat/mensaje", {
