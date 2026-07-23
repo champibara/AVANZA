@@ -17,7 +17,7 @@ export async function POST(
     return NextResponse.json({ error: "El caso no está en estado diferido" }, { status: 400 });
   }
 
-  await db.update(casos).set({ estado: "pendiente_validacion" }).where(eq(casos.id, caso.id));
+  await db.update(casos).set({ estado: "pendiente_validacion", fechaActualizacion: new Date() }).where(eq(casos.id, caso.id));
   await db.insert(acciones).values({
     casoId: caso.id,
     tipoAccion: "caso_reanudado",

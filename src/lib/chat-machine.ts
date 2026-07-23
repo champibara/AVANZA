@@ -49,6 +49,7 @@ export const chatTransitions: Transitions = {
   },
   orientacion: {
     CONTINUAR: { to: "decide_continuar" },
+    NO_CONTINUAR: { to: "cierre_amable" },
   },
   decide_continuar: {
     CONTINUAR: { to: "consentimiento" },

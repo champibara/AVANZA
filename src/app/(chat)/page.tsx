@@ -22,7 +22,8 @@ type Paso =
   | "evidencia"
   | "decide_denuncia"
   | "pin_info"
-  | "final";
+  | "final"
+  | "reanudado";
 
 export default function ChatPage() {
   const { t } = useTranslate();
@@ -42,6 +43,16 @@ export default function ChatPage() {
   const [pinCopiado, setPinCopiado] = useState(false);
   const [cargando, setCargando] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pinReanudado = params.get("pin");
+    if (pinReanudado) {
+      setPin(pinReanudado);
+      agregarMensaje("sistema", `Caso reanudado. Tu PIN: ${pinReanudado} — un operador revisará tu caso.`);
+      setPaso("reanudado");
+    }
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -98,10 +109,13 @@ export default function ChatPage() {
     setCargando(true);
     agregarMensaje("victima", "Sí, deseo continuar");
     const data = await enviarEvento("CONTINUAR", "Sí, deseo continuar con el proceso");
-    if (!data) return;
+    if (!data) { console.warn("[manejarContinuar] primer CONTINUAR falló, data es null"); return; }
+
+    const data2 = await enviarEvento("CONTINUAR", "");
+    if (!data2) { console.warn("[manejarContinuar] segundo CONTINUAR falló, data2 es null"); return; }
 
     setPaso("consentimiento");
-    data.mensajes?.forEach((m: string) => agregarMensaje("ia", m));
+    data2.mensajes?.forEach((m: string) => agregarMensaje("ia", m));
   };
 
   const manejarNoContinuar = async () => {
@@ -118,7 +132,7 @@ export default function ChatPage() {
     setCargando(true);
     agregarMensaje("victima", "Acepto los términos");
     const data = await enviarEvento("ACEPTAR_CONSENTIMIENTO", "Acepto los términos de tratamiento de datos");
-    if (!data) return;
+    if (!data) { console.warn("[manejarAceptarConsentimiento] ACEPTAR_CONSENTIMIENTO falló"); return; }
 
     setPaso("formulario");
     data.mensajes?.forEach((m: string) => agregarMensaje("ia", m));
@@ -158,15 +172,16 @@ export default function ChatPage() {
   };
 
   const manejarSubirEvidencia = async () => {
-    if (!urlEvidencia) return;
+    if (!urlEvidencia) { console.warn("[manejarSubirEvidencia] urlEvidencia vacía"); return; }
     setCargando(true);
     agregarMensaje("victima", `URL: ${urlEvidencia}`);
 
-    await fetch("/api/evidencia/url", {
+    const urlRes = await fetch("/api/evidencia/url", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ casoId, url: urlEvidencia, descripcion: descripcionEvidencia }),
     });
+    if (!urlRes.ok) { console.warn("[manejarSubirEvidencia] Error al registrar URL:", urlRes.status); }
 
     const data = await enviarEvento("EVIDENCIA_LISTA", `URL registrada: ${urlEvidencia}`);
     setUrlEvidencia("");
@@ -175,10 +190,19 @@ export default function ChatPage() {
     data?.mensajes?.forEach((m: string) => agregarMensaje("ia", m));
   };
 
+  const manejarOmitirEvidencia = async () => {
+    setCargando(true);
+    const data = await enviarEvento("EVIDENCIA_LISTA", "");
+    if (!data) { console.warn("[manejarOmitirEvidencia] EVIDENCIA_LISTA falló"); return; }
+    agregarMensaje("ia", "¿Deseas presentar la denuncia ahora o prefieres guardar el caso para continuar después?");
+    setPaso("decide_denuncia");
+  };
+
   const manejarSubirArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !casoId) return;
+    if (!file || !casoId) { console.warn("[manejarSubirArchivo] file o casoId faltante", { file: !!file, casoId }); return; }
 
+    setCargando(true);
     agregarMensaje("victima", `[Archivo: ${file.name}]`);
 
     const formData = new FormData();
@@ -186,7 +210,8 @@ export default function ChatPage() {
     formData.append("file", file);
     formData.append("descripcion", descripcionEvidencia);
 
-    await fetch("/api/evidencia/subir", { method: "POST", body: formData });
+    const subirRes = await fetch("/api/evidencia/subir", { method: "POST", body: formData });
+    if (!subirRes.ok) { console.warn("[manejarSubirArchivo] Error al subir archivo:", subirRes.status); }
     const data = await enviarEvento("EVIDENCIA_LISTA", `Archivo subido: ${file.name}`);
     setDescripcionEvidencia("");
     setPaso("decide_denuncia");
@@ -400,11 +425,9 @@ export default function ChatPage() {
               </label>
             </div>
             <button
-              onClick={() => {
-                setPaso("decide_denuncia");
-                agregarMensaje("ia", "¿Deseas presentar la denuncia ahora o prefieres guardar el caso para continuar después?");
-              }}
-              className="w-full text-gray-500 dark:text-gray-400 text-sm py-2 hover:text-gray-700 dark:hover:text-gray-300 transition"
+              onClick={manejarOmitirEvidencia}
+              disabled={cargando}
+              className="w-full text-gray-500 dark:text-gray-400 text-sm py-2 hover:text-gray-700 dark:hover:text-gray-300 transition disabled:opacity-50"
             >
               {t("chat", "omitir")}
             </button>
@@ -427,6 +450,23 @@ export default function ChatPage() {
             >
               {t("chat", "guardar_despues")}
             </button>
+          </div>
+        )}
+
+        {paso === "reanudado" && (
+          <div className="space-y-3">
+            <Link
+              href="/"
+              className="block w-full bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition text-center font-medium"
+            >
+              {t("chat", "nuevo")}
+            </Link>
+            <Link
+              href="/consulta"
+              className="block w-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 py-3 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition text-center font-medium"
+            >
+              {t("consulta", "title")}
+            </Link>
           </div>
         )}
 

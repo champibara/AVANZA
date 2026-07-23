@@ -60,7 +60,7 @@ export default function ConsultaPage() {
         setError(t("consulta", "error_reanudar"));
         return;
       }
-      router.push("/");
+      router.push(`/?pin=${pin.trim().toUpperCase()}`);
     } catch {
       setError(t("consulta", "error_reanudar"));
     } finally {

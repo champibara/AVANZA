@@ -13,19 +13,29 @@ const s3Client = new S3Client({
 const BUCKET = process.env.S3_BUCKET || "evidencia";
 
 export async function uploadFile(key: string, buffer: Buffer, mimeType: string) {
-  const command = new PutObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-    Body: buffer,
-    ContentType: mimeType,
-  });
-  return s3Client.send(command);
+  try {
+    const command = new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: buffer,
+      ContentType: mimeType,
+    });
+    return await s3Client.send(command);
+  } catch (error) {
+    console.error("Error al subir archivo a S3:", error);
+    throw new Error("No se pudo subir el archivo al almacenamiento");
+  }
 }
 
 export async function getFile(key: string) {
-  const command = new GetObjectCommand({
-    Bucket: BUCKET,
-    Key: key,
-  });
-  return s3Client.send(command);
+  try {
+    const command = new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+    });
+    return await s3Client.send(command);
+  } catch (error) {
+    console.error("Error al obtener archivo de S3:", error);
+    throw new Error("No se pudo obtener el archivo del almacenamiento");
+  }
 }

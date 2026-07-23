@@ -30,7 +30,7 @@ export async function GET(
     evidencias: evidenciasList.map(e => ({
       tipo: e.tipo,
       hash: e.hashSha256,
-      timestamp: e.timestampEvidencia,
+      timestampEvidencia: e.timestampEvidencia,
       descripcion: e.descripcion,
     })),
     acciones: accionesList,

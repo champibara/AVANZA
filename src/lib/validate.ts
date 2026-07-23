@@ -5,7 +5,7 @@ export function sanitizar(texto: string): string {
 }
 
 export function validarEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
 }
 
 export function validarPin(pin: string): boolean {

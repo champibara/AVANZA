@@ -17,6 +17,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error }, { status: 400 });
   }
 
+  try {
+    new URL(url);
+  } catch {
+    return NextResponse.json({ error: "La URL proporcionada no es válida" }, { status: 400 });
+  }
+
   const casoId = Number(rawCasoId);
 
   const hash = createHash("sha256").update(url).digest("hex");

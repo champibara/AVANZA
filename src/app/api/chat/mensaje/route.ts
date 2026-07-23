@@ -33,6 +33,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Caso no encontrado" }, { status: 404 });
   }
 
+  const estadosValidos: ChatState[] = ["inicio","orientacion","decide_continuar","consentimiento","decide_consentimiento","registro","evidencia","decide_denuncia","caso_guardado","pendiente_validacion","validado","rechazado","clasificado","derivado","seguimiento","nuevas_acciones","cierre_amable","fin"];
+  if (!estadosValidos.includes(caso.estado as ChatState)) {
+    console.error(`[chat-machine] Estado inválido en DB: "${caso.estado}", casoId=${casoId}`);
+    return NextResponse.json({ error: "Estado de caso inválido" }, { status: 500 });
+  }
   const currentState = caso.estado as ChatState;
   const nextState = transition(currentState, { type: eventType });
 
@@ -41,7 +46,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Transición no válida" }, { status: 400 });
   }
 
-  const updateData: Record<string, unknown> = { estado: nextState };
+  const updateData: Record<string, unknown> = { estado: nextState, fechaActualizacion: new Date() };
 
   if (eventType === "REGISTRAR" && mensajeUsuario) {
     try {

@@ -32,7 +32,11 @@ export async function POST(req: NextRequest) {
   const hash = createHash("sha256").update(buffer).digest("hex");
   const key = `${rawCasoId}/${Date.now()}-${file.name}`;
 
-  await uploadFile(key, buffer, file.type);
+  try {
+    await uploadFile(key, buffer, file.type);
+  } catch {
+    return NextResponse.json({ error: "Error al almacenar la evidencia. Intente nuevamente." }, { status: 500 });
+  }
 
   await db.insert(evidencias).values({
     casoId,

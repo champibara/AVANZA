@@ -120,7 +120,8 @@ export async function generarMensajeIA(
   try {
     return await geminiChat(systemPrompt, historial);
   } catch (error) {
-    console.error("Error al llamar a Gemini:", error);
-    throw new Error("No se pudo generar la respuesta de orientación.");
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Error al llamar a Gemini:", msg);
+    throw new Error(`No se pudo generar la respuesta de orientación: ${msg}`);
   }
 }

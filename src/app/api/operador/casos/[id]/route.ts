@@ -32,9 +32,13 @@ export async function GET(
   }
   
   return NextResponse.json({
-    caso: { ...caso, operadorNombre },
+    caso: { ...caso, operadorNombre, esAnonimo: caso.esAnonimo === 1 },
     evidencias: evidenciasList,
     acciones: accionesList,
-    expediente: expediente,
+    expediente: expediente ? {
+      ...expediente,
+      enviadoOk: expediente.enviadoOk === 1,
+      datosExpediente: JSON.parse(expediente.datosExpediente),
+    } : null,
   });
 }

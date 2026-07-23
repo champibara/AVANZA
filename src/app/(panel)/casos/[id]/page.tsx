@@ -6,7 +6,7 @@ import { ArrowLeft, Shield, Clock, Hash, CheckCircle, XCircle, FileText, Send, C
 import { useTranslate } from "@/lib/i18n/context";
 
 interface EvidenciaData {
-  id: string;
+  id: number;
   tipo: string;
   archivoUrl?: string;
   descripcion?: string;
@@ -15,16 +15,16 @@ interface EvidenciaData {
 }
 
 interface AccionData {
-  id: string;
+  id: number;
   tipoAccion: string;
   actor: string;
   descripcion: string;
   fecha: string;
-  operadorId?: string;
+  operadorId?: number;
 }
 
 interface ExpedienteData {
-  id: string;
+  id: number;
   entidadDestino: string;
   datosExpediente: Record<string, unknown>;
   enviadoOk: boolean;
@@ -32,7 +32,7 @@ interface ExpedienteData {
 }
 
 interface CasoData {
-  id: string;
+  id: number;
   pin: string;
   nombreVictima?: string;
   edadAproximada?: number;
@@ -42,7 +42,7 @@ interface CasoData {
   tipoDelito?: string;
   accionTipo?: string;
   entidadAsignada?: string;
-  operadorId?: string;
+  operadorId?: number;
   fechaCreacion: string;
   operadorNombre?: string;
 }
@@ -78,6 +78,7 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
   const [entidadDestino, setEntidadDestino] = useState("");
   const [mensajeNotif, setMensajeNotif] = useState("");
   const [descripcionSeguimiento, setDescripcionSeguimiento] = useState("");
+  const [cargandoAccion, setCargandoAccion] = useState(false);
 
   useEffect(() => {
     fetch(`/api/operador/casos/${id}`)
@@ -95,16 +96,21 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
   }), [t]);
 
   const ejecutarAccion = async (url: string, body: Record<string, unknown>) => {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) {
-      setAccion(null);
-      const res2 = await fetch(`/api/operador/casos/${id}`);
-      const data2 = await res2.json();
-      setData(data2);
+    setCargandoAccion(true);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setAccion(null);
+        const res2 = await fetch(`/api/operador/casos/${id}`);
+        const data2 = await res2.json();
+        setData(data2);
+      }
+    } finally {
+      setCargandoAccion(false);
     }
   };
 
@@ -289,8 +295,8 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
             <h2 className="font-bold text-lg mb-4">{t("caso", "validar")}</h2>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">{t("caso", "validar_confirmar")}</p>
             <div className="flex gap-3">
-              <button onClick={() => setAccion(null)} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition">{t("common", "cancelar")}</button>
-              <button onClick={() => ejecutarAccion(`/api/operador/casos/${id}/validar`, {})} className="flex-1 bg-green-600 text-white py-2.5 rounded-xl hover:bg-green-700 transition">{t("caso", "validar")}</button>
+              <button onClick={() => setAccion(null)} disabled={cargandoAccion} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50">{t("common", "cancelar")}</button>
+              <button onClick={() => ejecutarAccion(`/api/operador/casos/${id}/validar`, {})} disabled={cargandoAccion} className="flex-1 bg-green-600 text-white py-2.5 rounded-xl hover:bg-green-700 transition disabled:opacity-50">{t("caso", "validar")}</button>
             </div>
           </div>
         </div>
@@ -308,8 +314,8 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
               rows={3}
             />
             <div className="flex gap-3">
-              <button onClick={() => setAccion(null)} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition">{t("common", "cancelar")}</button>
-              <button onClick={() => ejecutarAccion(`/api/operador/casos/${id}/rechazar`, { motivo: motivoRechazo })} className="flex-1 bg-red-600 text-white py-2.5 rounded-xl hover:bg-red-700 transition">{t("caso", "rechazar")}</button>
+              <button onClick={() => setAccion(null)} disabled={cargandoAccion} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50">{t("common", "cancelar")}</button>
+              <button onClick={() => ejecutarAccion(`/api/operador/casos/${id}/rechazar`, { motivo: motivoRechazo })} disabled={cargandoAccion} className="flex-1 bg-red-600 text-white py-2.5 rounded-xl hover:bg-red-700 transition disabled:opacity-50">{t("caso", "rechazar")}</button>
             </div>
           </div>
         </div>
@@ -349,10 +355,10 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setAccion(null)} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition">{t("common", "cancelar")}</button>
+                <button onClick={() => setAccion(null)} disabled={cargandoAccion} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50">{t("common", "cancelar")}</button>
                 <button
                   onClick={() => ejecutarAccion(`/api/operador/casos/${id}/clasificar`, { tipoDelito, accionTipo })}
-                  disabled={!tipoDelito}
+                  disabled={!tipoDelito || cargandoAccion}
                   className="flex-1 bg-purple-600 text-white py-2.5 rounded-xl hover:bg-purple-700 transition disabled:opacity-50"
                 >
                   {t("caso", "clasificar")}
@@ -371,10 +377,11 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
               {t("caso", "derivar_a")}: <strong>{entidadDestino === "fiscalia" ? "Fiscalía Especializada" : "CEM / Asesoría Legal"}</strong>
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setAccion(null)} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition">{t("common", "cancelar")}</button>
+              <button onClick={() => setAccion(null)} disabled={cargandoAccion} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50">{t("common", "cancelar")}</button>
               <button
                 onClick={() => ejecutarAccion(`/api/operador/casos/${id}/derivar`, { entidadDestino })}
-                className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 transition"
+                disabled={cargandoAccion}
+                className="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 transition disabled:opacity-50"
               >
                 {t("caso", "derivar")}
               </button>
@@ -395,13 +402,13 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
               rows={3}
             />
             <div className="flex gap-3">
-              <button onClick={() => setAccion(null)} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition">{t("common", "cancelar")}</button>
+              <button onClick={() => setAccion(null)} disabled={cargandoAccion} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50">{t("common", "cancelar")}</button>
               <button
                 onClick={() => {
                   ejecutarAccion(`/api/operador/casos/${id}/seguimiento`, { descripcion: descripcionSeguimiento });
                   setDescripcionSeguimiento("");
                 }}
-                disabled={!descripcionSeguimiento.trim()}
+                disabled={!descripcionSeguimiento.trim() || cargandoAccion}
                 className="flex-1 bg-amber-600 text-white py-2.5 rounded-xl hover:bg-amber-700 transition disabled:opacity-50"
               >
                 {t("caso", "guardar_seguimiento")}
@@ -423,10 +430,11 @@ export default function CasoDetallePage({ params }: { params: Promise<{ id: stri
               rows={3}
             />
             <div className="flex gap-3">
-              <button onClick={() => setAccion(null)} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition">{t("common", "cancelar")}</button>
+              <button onClick={() => setAccion(null)} disabled={cargandoAccion} className="flex-1 bg-gray-200 dark:bg-gray-700 dark:text-gray-200 py-2.5 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition disabled:opacity-50">{t("common", "cancelar")}</button>
               <button
                 onClick={() => ejecutarAccion(`/api/operador/casos/${id}/notificar`, { mensaje: mensajeNotif })}
-                className="flex-1 bg-teal-600 text-white py-2.5 rounded-xl hover:bg-teal-700 transition"
+                disabled={cargandoAccion}
+                className="flex-1 bg-teal-600 text-white py-2.5 rounded-xl hover:bg-teal-700 transition disabled:opacity-50"
               >
                 {t("caso", "enviar")}
               </button>
